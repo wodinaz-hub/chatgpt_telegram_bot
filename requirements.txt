@@ -1,0 +1,4 @@
+pydantic-settings
+python-telegram-bot
+openai
+loguru

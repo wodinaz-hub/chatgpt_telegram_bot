@@ -1,0 +1,10 @@
+[
+  {
+    "text": "Закінчити",
+    "callback_data": "start"
+  },
+  {
+    "text": "Хочу ще факт",
+    "callback_data": "random"
+  }
+]
