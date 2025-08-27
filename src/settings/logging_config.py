@@ -3,7 +3,7 @@ import sys
 from loguru import logger
 from pathlib import Path
 
-from config import config
+from .config import config
 
 
 def setup_logging() -> None:
@@ -13,7 +13,7 @@ def setup_logging() -> None:
     Логи виводяться в консоль (рівень INFO), зберігаються в app.log (INFO)
     та в error.log (WARNING).
     """
-    log_dir: Path = config.paths.logs
+    log_dir: Path = config.path_logs
     app_log_path: Path = log_dir / "app.log"
     error_log_path: Path = log_dir / "error.log"
 
