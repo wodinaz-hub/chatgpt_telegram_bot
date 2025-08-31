@@ -1,61 +1,56 @@
 import json
 from pathlib import Path
-from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update, InputFile
+from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, InputFile
 from telegram.ext import ContextTypes
 from loguru import logger
-from src.settings.config import config
 
-
-# Увесь інший код функцій залишається без змін...
 def get_menu_from_file(file_path: Path) -> InlineKeyboardMarkup:
-    """Зчитує дані кнопок з JSON-файлу та формує клавіатуру."""
+    """Завантажує та генерує клавіатуру з файлу .json, адаптуючись до структури даних."""
     try:
         with open(file_path, "r", encoding="utf-8") as file:
             menu_data = json.load(file)
 
-        keyboard = [
-            [InlineKeyboardButton(text=text, callback_data=key)]
-            for key, text in menu_data.items()
-        ]
+        keyboard = []
+        if isinstance(menu_data, dict):
+            # Обробка формату словника
+            for key, text in menu_data.items():
+                keyboard.append([InlineKeyboardButton(text=text, callback_data=key)])
+        elif isinstance(menu_data, list):
+            # Обробка формату списку
+            for item in menu_data:
+                if "text" in item and "callback_data" in item:
+                    keyboard.append([InlineKeyboardButton(item["text"], callback_data=item["callback_data"])])
+        else:
+            logger.error(f"Невідомий формат даних у файлі {file_path}")
+            return None
 
-        return InlineKeyboardMarkup(inline_keyboard=keyboard)
-    except FileNotFoundError as e:
-        logger.error(f"Файл меню не знайдено: {e}")
-        return InlineKeyboardMarkup(inline_keyboard=[[InlineKeyboardButton(text="Почати", callback_data="start")]])
-    except Exception as e:
-        logger.error(f"Помилка при завантаженні меню: {e}")
-        return InlineKeyboardMarkup(inline_keyboard=[[InlineKeyboardButton(text="Почати", callback_data="start")]])
+        return InlineKeyboardMarkup(keyboard)
+
+    except (FileNotFoundError, json.JSONDecodeError) as e:
+        logger.error(f"Помилка при завантаженні файлу меню {file_path}: {e}")
+        return InlineKeyboardMarkup(inline_keyboard=[
+            [InlineKeyboardButton(text="Почати", callback_data="start")]
+        ])
 
 
-async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """
-    Обробляє команду /start, надсилаючи зображення, вітальне повідомлення та кнопки.
-    """
+async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Обробляє команду /start та показує головне меню."""
     logger.info(f"Користувач {update.effective_user.id} викликав команду /start.")
 
-    if update.message:
-        target_message = update.message
-    elif update.callback_query:
-        target_message = update.callback_query.message
+    if update.callback_query:
         await update.callback_query.answer()
+        message_to_edit = update.callback_query.message
     else:
-        return
+        message_to_edit = update.message
 
-    image_path = config.path_images / "main.jpg"
-    menu_path = config.path_menus / "main.json"
-    reply_markup = get_menu_from_file(menu_path)
+    # Завантажуємо клавіатуру з файлу
+    reply_markup = get_menu_from_file(context.bot_data['config'].paths.menus / "main.json")
 
-    try:
-        # Відправляємо фото з підписом та кнопками
-        with open(image_path, 'rb') as photo_file:
-            await target_message.reply_photo(
-                photo=InputFile(photo_file),
-                caption="Вітаю! Я твій AI-асистент. Обери одну з команд, щоб почати.",
-                reply_markup=reply_markup
-            )
-    except FileNotFoundError as e:
-        logger.error(f"Помилка FileNotFoundError: {e}")
-        await target_message.reply_text("Вибачте, файл зображення 'main.jpg' не знайдено.")
-    except Exception as e:
-        logger.error(f"Непередбачена помилка: {e}")
-        await target_message.reply_text("Вибачте, сталася помилка при обробці запиту. Спробуйте ще раз.")
+    # Надсилаємо зображення
+    image_path = context.bot_data['config'].paths.images / "main.jpg"
+    with open(image_path, 'rb') as image:
+        await message_to_edit.reply_photo(
+            photo=InputFile(image),
+            caption="Вітаю! Я твій AI-асистент. Обери одну з команд, щоб почати.",
+            reply_markup=reply_markup
+        )

@@ -13,7 +13,7 @@ def setup_logging() -> None:
     Логи виводяться в консоль (рівень INFO), зберігаються в app.log (INFO)
     та в error.log (WARNING).
     """
-    log_dir: Path = config.path_logs
+    log_dir: Path = config.paths.logs
     app_log_path: Path = log_dir / "app.log"
     error_log_path: Path = log_dir / "error.log"
 

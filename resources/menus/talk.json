@@ -1,0 +1,26 @@
+[
+  {
+    "text": "Курт Кобейн 🎸",
+    "callback_data": "talk_cobain"
+  },
+  {
+    "text": "Стівен Гокінг 🌌",
+    "callback_data": "talk_hawking"
+  },
+  {
+    "text": "Фрідріх Ніцше 🖋️",
+    "callback_data": "talk_nietzsche"
+  },
+  {
+    "text": "Королева Єлизавета II 👑",
+    "callback_data": "talk_queen"
+  },
+  {
+    "text": "Джон Рональд Руел Толкін 🧙",
+    "callback_data": "talk_tolkien"
+  },
+  {
+    "text": "Завершити розмову 🚪",
+    "callback_data": "end_talk"
+  }
+]
